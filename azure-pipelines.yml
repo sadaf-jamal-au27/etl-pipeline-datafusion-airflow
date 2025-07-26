@@ -1,13 +1,63 @@
+trigger:
+- main  # or your branch name
+
 pool:
   name: sadaf-self-agent
 
-steps:
-- task: UsePythonVersion@0
-  inputs:
-    versionSpec: '3.x'
-    addToPath: true
+jobs:
+- job: RunETL
+  steps:
+  - task: Bash@3
+    displayName: Create main.py dynamically
+    inputs:
+      targetType: inline
+      script: |
+        echo "Creating main.py..."
+        cat <<EOF > main.py
+        import pandas as pd
+        import os
 
-- script: |
-    echo "Running ETL Script"
-    python main.py
-  displayName: 'Run ETL Script'
+        def extract():
+            print("🔹 Extracting data...")
+            data = pd.read_csv("input.csv")
+            return data
+
+        def transform(data):
+            print("🔹 Transforming data...")
+            data = data.dropna()
+            data.columns = [col.lower() for col in data.columns]
+            return data
+
+        def load(data):
+            print("🔹 Loading data...")
+            os.makedirs("output", exist_ok=True)
+            data.to_csv("output/processed_data.csv", index=False)
+            print("✅ Data written to output/processed_data.csv")
+
+        def main():
+            print("🚀 Starting ETL Pipeline")
+            data = extract()
+            data = transform(data)
+            load(data)
+            print("🏁 ETL Pipeline completed")
+
+        if __name__ == "__main__":
+            main()
+        EOF
+
+  - script: |
+      echo "Name,Age,Department" > input.csv
+      echo "Alice,30,Engineering" >> input.csv
+      echo "Bob,,Marketing" >> input.csv
+      echo "Charlie,25,Finance" >> input.csv
+    displayName: Create dummy input.csv
+
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '3.x'
+    displayName: Use Python 3
+
+  - script: |
+      echo "Running ETL Script"
+      python main.py
+    displayName: Run ETL Script
