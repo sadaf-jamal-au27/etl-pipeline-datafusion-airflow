@@ -1,0 +1,6 @@
+pool:
+  name: sadaf-self-agent
+
+steps:
+- script: echo "✅ Hello from Sadaf's self-hosted agent!"
+  displayName: 'Print Message'
