@@ -1,5 +1,5 @@
 trigger:
-- main  # or your branch name
+- main
 
 pool:
   name: sadaf-self-agent
@@ -7,50 +7,48 @@ pool:
 jobs:
 - job: RunETL
   steps:
-  - task: Bash@3
+  - task: CmdLine@2
     displayName: Create main.py dynamically
     inputs:
-      targetType: inline
       script: |
-        echo "Creating main.py..."
-        cat <<EOF > main.py
-        import pandas as pd
-        import os
+        echo import pandas as pd> main.py
+        echo import os>> main.py
+        echo.>> main.py
+        echo def extract():>> main.py
+        echo     print("🔹 Extracting data...")>> main.py
+        echo     data = pd.read_csv("input.csv")>> main.py
+        echo     return data>> main.py
+        echo.>> main.py
+        echo def transform(data):>> main.py
+        echo     print("🔹 Transforming data...")>> main.py
+        echo     data = data.dropna()>> main.py
+        echo     data.columns = [col.lower() for col in data.columns]>> main.py
+        echo     return data>> main.py
+        echo.>> main.py
+        echo def load(data):>> main.py
+        echo     print("🔹 Loading data...")>> main.py
+        echo     os.makedirs("output", exist_ok=True)>> main.py
+        echo     data.to_csv("output/processed_data.csv", index=False)>> main.py
+        echo     print("✅ Data written to output/processed_data.csv")>> main.py
+        echo.>> main.py
+        echo def main():>> main.py
+        echo     print("🚀 Starting ETL Pipeline")>> main.py
+        echo     data = extract()>> main.py
+        echo     data = transform(data)>> main.py
+        echo     load(data)>> main.py
+        echo     print("🏁 ETL Pipeline completed")>> main.py
+        echo.>> main.py
+        echo if __name__ == "__main__":>> main.py
+        echo     main()>> main.py
 
-        def extract():
-            print("🔹 Extracting data...")
-            data = pd.read_csv("input.csv")
-            return data
-
-        def transform(data):
-            print("🔹 Transforming data...")
-            data = data.dropna()
-            data.columns = [col.lower() for col in data.columns]
-            return data
-
-        def load(data):
-            print("🔹 Loading data...")
-            os.makedirs("output", exist_ok=True)
-            data.to_csv("output/processed_data.csv", index=False)
-            print("✅ Data written to output/processed_data.csv")
-
-        def main():
-            print("🚀 Starting ETL Pipeline")
-            data = extract()
-            data = transform(data)
-            load(data)
-            print("🏁 ETL Pipeline completed")
-
-        if __name__ == "__main__":
-            main()
-        EOF
-
-  - script: |
-      echo "Name,Age,Department" > input.csv
-      echo "Alice,30,Engineering" >> input.csv
-      echo "Bob,,Marketing" >> input.csv
-      echo "Charlie,25,Finance" >> input.csv
+  - task: CmdLine@2
     displayName: Create dummy input.csv
+    inputs:
+      script: |
+        echo Name,Age,Department > input.csv
+        echo Alice,30,Engineering >> input.csv
+        echo Bob,,Marketing >> input.csv
+        echo Charlie,25,Finance >> input.csv
 
   - task: UsePythonVersion@0
     inputs:
@@ -58,6 +56,6 @@ jobs:
     displayName: Use Python 3
 
   - script: |
-      echo "Running ETL Script"
+      echo Running ETL Script
       python main.py
     displayName: Run ETL Script
