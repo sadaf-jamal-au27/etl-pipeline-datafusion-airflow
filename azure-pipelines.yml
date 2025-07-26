@@ -2,5 +2,12 @@ pool:
   name: sadaf-self-agent
 
 steps:
-- script: echo "✅ Hello from Sadaf's self-hosted agent!"
-  displayName: 'Print Message'
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '3.x'
+    addToPath: true
+
+- script: |
+    echo "Running ETL Script"
+    python main.py
+  displayName: 'Run ETL Script'
